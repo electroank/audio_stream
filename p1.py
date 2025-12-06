@@ -5,11 +5,11 @@ import socket
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-# --- ULTRA LOW LATENCY CONFIGURATION ---
+
 HTTP_PORT = 8000
 WS_PORT = 8765
-CHUNK = 384          # Sweet spot: low latency (~8ms) without crackling
-RATE = 48000         # Native Windows rate (prevents resampling lag)
+CHUNK = 384          
+RATE = 48000        
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -48,8 +48,7 @@ HTML_PAGE = f"""
         let ws;
         let nextTime = 0;
         
-        // Lower latency means less stability. 
-        // If audio crackles, increase this to 0.06
+
         const BUFFER_TOLERANCE = 0.04; 
 
         document.getElementById('playBtn').addEventListener('click', async () => {{
@@ -136,21 +135,18 @@ async def audio_stream(websocket):
                     default_speakers = loopback
                     break
         
-        # Open stream with smaller buffer for speed
-        # Using exclusive mode for lowest possible latency
+
         stream = p.open(format=pyaudio.paInt16,
-                        channels=2, # Force Stereo
+                        channels=2, 
                         rate=RATE,
                         input=True,
                         input_device_index=default_speakers["index"],
                         frames_per_buffer=CHUNK,
-                        stream_callback=None)  # Use blocking mode for tighter control
+                        stream_callback=None)  
         
         print(f"Streaming Ultra Low Latency from: {default_speakers['name']}")
 
         while True:
-            # exception_on_overflow=False discards data if CPU is too slow
-            # This is GOOD for latency (better to skip than to delay)
             data = stream.read(CHUNK, exception_on_overflow=False)
             await websocket.send(data)
             await asyncio.sleep(0)
