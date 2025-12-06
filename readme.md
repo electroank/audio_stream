@@ -2,6 +2,8 @@
 
 Python 3.12 or higher
 
+**Note:** As of December 2025, only Python up to 3.12 works for the `pyaudiowpatch` library, so use 3.12 if possible.
+
 ## Installation
 
 Install the required dependencies:
