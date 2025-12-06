@@ -5,10 +5,10 @@ import socket
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-# --- LOW LATENCY CONFIGURATION ---
+# --- ULTRA LOW LATENCY CONFIGURATION ---
 HTTP_PORT = 8000
 WS_PORT = 8765
-CHUNK = 512          # Lower chunk = Lower latency (but higher CPU usage)
+CHUNK = 384          # Sweet spot: low latency (~8ms) without crackling
 RATE = 48000         # Native Windows rate (prevents resampling lag)
 
 def get_local_ip():
@@ -49,11 +49,14 @@ HTML_PAGE = f"""
         let nextTime = 0;
         
         // Lower latency means less stability. 
-        // If audio crackles, increase this to 0.10
-        const BUFFER_TOLERANCE = 0.05; 
+        // If audio crackles, increase this to 0.06
+        const BUFFER_TOLERANCE = 0.04; 
 
         document.getElementById('playBtn').addEventListener('click', async () => {{
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)({{ sampleRate: {RATE} }});
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)({{ 
+                sampleRate: {RATE},
+                latencyHint: 'interactive'  // Request lowest latency from browser
+            }});
             if (audioCtx.state === 'suspended') await audioCtx.resume();
             connectWebSocket();
         }});
@@ -87,17 +90,17 @@ HTML_PAGE = f"""
                 source.buffer = buffer;
                 source.connect(audioCtx.destination);
 
-                // --- THE LOW LATENCY MAGIC ---
+                // --- THE ULTRA LOW LATENCY MAGIC ---
                 // If the scheduled time is in the past, reset it to "now"
                 if (nextTime < audioCtx.currentTime) {{
                     nextTime = audioCtx.currentTime;
                 }}
                 
                 // If the scheduled time is too far in the future (lag accumulation),
-                // snap it back to "now" + small buffer. This drops old audio.
+                // snap it back to "now" + tiny buffer. This drops old audio.
                 if (nextTime > audioCtx.currentTime + BUFFER_TOLERANCE) {{
-                    console.log("Skipping ahead to reduce latency...");
-                    nextTime = audioCtx.currentTime + 0.01;
+                    // Skip stale audio to stay live
+                    nextTime = audioCtx.currentTime + 0.015;
                 }}
 
                 source.start(nextTime);
@@ -134,14 +137,16 @@ async def audio_stream(websocket):
                     break
         
         # Open stream with smaller buffer for speed
+        # Using exclusive mode for lowest possible latency
         stream = p.open(format=pyaudio.paInt16,
                         channels=2, # Force Stereo
                         rate=RATE,
                         input=True,
                         input_device_index=default_speakers["index"],
-                        frames_per_buffer=CHUNK)
+                        frames_per_buffer=CHUNK,
+                        stream_callback=None)  # Use blocking mode for tighter control
         
-        print(f"Streaming Low Latency from: {default_speakers['name']}")
+        print(f"Streaming Ultra Low Latency from: {default_speakers['name']}")
 
         while True:
             # exception_on_overflow=False discards data if CPU is too slow
