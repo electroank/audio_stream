@@ -6,7 +6,13 @@ A lightweight Python application that streams audio from your system's default a
 
 - Python 3.12 or higher
 
-**Note:** The `pyaudiowpatch` library currently supports Python up to version 3.12(as of December 2025) Use Python 3.12 for optimal compatibility.
+## System Requirements
+
+- Python 3.12 or higher
+- A physical audio output device (internal speakers, headphones, or a wired audio device)
+    - **Note:** `pyaudiowpatch` doesn't work with Bluetooth audio devices, so you'll need to use internal speakers or wired headphones to capture audio.
+
+
 
 ## Installation
 
