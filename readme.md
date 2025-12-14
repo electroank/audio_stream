@@ -6,13 +6,7 @@ A lightweight Python application that streams audio from your system's default a
 
 - Python 3.12 or higher
 
-## System Requirements
-
-- Python 3.12 or higher
-- A physical audio output device (internal speakers, headphones, or a wired audio device)
-    - **Note:** `pyaudiowpatch` doesn't work with Bluetooth audio devices, so you'll need to use internal speakers or wired headphones to capture audio.
-
-
+**Note:** The `pyaudiowpatch` library currently supports Python up to version 3.12(as of December 2025) Use Python 3.12 for optimal compatibility. and choose internal audio like the speakers in a laptop to play the audio then only the ppyaudiowatch can capture the audio, it will not work if you have connected to a bluetooth speaker. you can also plug a headphone and it will work, as long as physical speaker devices are connected then it will work. in HP laptop realtek audio supported speakers work(which are essentially the internal speaker and attatched headphones)
 
 ## Installation
 
